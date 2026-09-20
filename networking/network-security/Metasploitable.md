@@ -147,6 +147,7 @@ Key findings (65505 closed, notable open ports):
 - **Tool Used:**  Metasploit — exploit/multi/misc/java_rmi_server
 - 
 - **Why This Tool:** Exploiting Java RMI requires implementing an RMI-compliant remote object handshake and serving a malicious Java class via HTTP for the target to load — Metasploit automates both the RMI protocol negotiation and hosting the payload JAR, which would otherwise require writing custom Java RMI client code
+  
 - **Steps:**
  1. search java_rmi
  2. use exploit/multi/misc/java_rmi_server (defaulted to Java Meterpreter reverse TCP payload)
@@ -156,17 +157,18 @@ Key findings (65505 closed, notable open ports):
  6. exploit - started a payload-hosting HTTP server, target's RMI registry called back and loaded the malicious class, Meterpreter session 4 opened
  7. Confirmed with getuid
 
-- **Evidence:**  evidence/exploit1.png
+- **Evidence:**  evidence/exploit5.png
+- 
 - **Cyber Kill Chain Stage(s):** Reconnaissance - nmap identified GNU Classpath grmiregistry on 1099
 - Weaponization - selected module, payload JAR prepared and hosted
 -  Delivery - target's RMI service was tricked into fetching the payload JAR over HTTP
 -  Exploitation - malicious class loaded and executed by the JVM 
 -  Installation, C2 - Meterpreter session established
-  - <one or two sentences justifying WHY each stage you listed applies to this specific exploit>
+    
 - **Outcome / Impact:** Full Meterpreter session on the target via the RMI service
   
 
-## Exploit 6: <Short title, e.g. "vsftpd 2.3.4 Backdoor">
+## Exploit 6: the "ingreslock" root blindshell (port 1524)
 
 - **Service / Port:** <e.g. FTP / 21>
 - **Vulnerability:** <name/CVE if known>
@@ -182,7 +184,7 @@ Key findings (65505 closed, notable open ports):
   - <one or two sentences justifying WHY each stage you listed applies to this specific exploit>
 - **Outcome / Impact:** <What access/data/privilege you actually got>
 
-  ## Exploit 7: <Short title, e.g. "vsftpd 2.3.4 Backdoor">
+  ## Exploit 7: NFS no_root_squash Misconfiguration(port 2049)
 
 - **Service / Port:** <e.g. FTP / 21>
 - **Vulnerability:** <name/CVE if known>
@@ -198,7 +200,7 @@ Key findings (65505 closed, notable open ports):
   - <one or two sentences justifying WHY each stage you listed applies to this specific exploit>
 - **Outcome / Impact:** <What access/data/privilege you actually got>
 
-## Exploit 8: <Short title, e.g. "vsftpd 2.3.4 Backdoor">
+## Exploit 8: MySQL root with no password (port 3306)
 
 - **Service / Port:** <e.g. FTP / 21>
 - **Vulnerability:** <name/CVE if known>
@@ -215,7 +217,7 @@ Key findings (65505 closed, notable open ports):
 - **Outcome / Impact:** <What access/data/privilege you actually got>
 
 
-  ## Exploit 9: <Short title, e.g. "vsftpd 2.3.4 Backdoor">
+  ## Exploit 9: PostgreSQL default credentials (pot 5432)
 
 - **Service / Port:** <e.g. FTP / 21>
 - **Vulnerability:** <name/CVE if known>
@@ -231,7 +233,7 @@ Key findings (65505 closed, notable open ports):
   - <one or two sentences justifying WHY each stage you listed applies to this specific exploit>
 - **Outcome / Impact:** <What access/data/privilege you actually got>
 
-## Exploit 10: <Short title, e.g. "vsftpd 2.3.4 Backdoor">
+## Exploit 10: Tomcat manager default credentials - WAR shell upload (port 8180)
 
 - **Service / Port:** <e.g. FTP / 21>
 - **Vulnerability:** <name/CVE if known>
