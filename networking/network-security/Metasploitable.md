@@ -17,26 +17,43 @@
 Command: nmap -sV -sC -p- 192.168.1.4
 
 Key findings (65505 closed, notable open ports):
-
+PORT     SERVICE    VERSION
 21/tcp   ftp        vsftpd 2.3.4 (anonymous login allowed)
 
 22/tcp   ssh        OpenSSH 4.7p1 Debian
+
 23/tcp   telnet     Linux telnetd
+
 25/tcp   smtp       Postfix smtpd
+
 53/tcp   domain     ISC BIND 9.4.2
+
 80/tcp   http       Apache httpd 2.2.8 (Ubuntu)
+
 111/tcp  rpcbind
+
 139/445  netbios-ssn Samba smbd 3.X-4.X / 3.0.20-Debian
+
 512-514  exec/login/shell (rsh/rlogin, no auth)
+
 1099/tcp java-rmi   GNU Classpath grmiregistry
+
 1524/tcp bindshell  "Metasploitable root shell"
+
 2049/tcp nfs
+
 3306/tcp mysql      MySQL 5.0.51a-3ubuntu5
+
 3632/tcp distccd    v1 4.2.4
+
 5432/tcp postgresql PostgreSQL 8.3.0-8.3.7
+
 5900/tcp vnc        VNC (protocol 3.3)
+
 6667/tcp irc        UnrealIRCd
+
 8009/tcp ajp13      Apache Jserv
+
 8180/tcp http       Apache Tomcat/Coyote 1.1
 
 
