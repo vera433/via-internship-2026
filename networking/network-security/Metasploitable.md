@@ -17,7 +17,9 @@
 Command: nmap -sV -sC -p- 192.168.1.4
 
 Key findings (65505 closed, notable open ports):
+
 PORT     SERVICE    VERSION
+
 21/tcp   ftp        vsftpd 2.3.4 (anonymous login allowed)
 
 22/tcp   ssh        OpenSSH 4.7p1 Debian
