@@ -17,7 +17,9 @@
 Command: nmap -sV -sC -p- 192.168.1.4
 
 Key findings (65505 closed, notable open ports):
+
 21/tcp   ftp        vsftpd 2.3.4 (anonymous login allowed)
+
 22/tcp   ssh        OpenSSH 4.7p1 Debian
 23/tcp   telnet     Linux telnetd
 25/tcp   smtp       Postfix smtpd
@@ -289,10 +291,10 @@ Key findings (65505 closed, notable open ports):
 4. distccd Command Execution | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ | |
 5. Java RMI Registry RCE | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ | |
 6. "ingreslock" Root Bindshell | ✔ | | ✔ | | ✔ | ✔ | |
-| 7. NFS no_root_squash | ✔ | ✔ | ✔ | ✔ | | | ✔ |
-| 8. MySQL Root, No Password | ✔ | | ✔ | ✔ | | | ✔ |
-| 9. PostgreSQL Default Creds | ✔ | | ✔ | ✔ | | | ✔ |
-| 10. Tomcat Manager to WAR Shell | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ | |
+7. NFS no_root_squash | ✔ | ✔ | ✔ | ✔ | | | ✔ |
+8. MySQL Root, No Password | ✔ | | ✔ | ✔ | | | ✔ |
+9. PostgreSQL Default Creds | ✔ | | ✔ | ✔ | | | ✔ |
+10. Tomcat Manager to WAR Shell | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ | |
 
 
 ---
